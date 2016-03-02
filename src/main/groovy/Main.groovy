@@ -65,7 +65,6 @@ class Main {
         keys
     }
 
-
     // Tokenizes a message and then searches featureDb for those tokens in order
     // to build up a list of known tokens to compare with
     def extractFeatures = {  String text ->
@@ -92,7 +91,12 @@ class Main {
     def testFromCorpus = { Map corpus, List remainingKeys ->
 
         remainingKeys.each {
-            Extractor.extractTokensFromFile(corpus[key])
+            def f = new File(corpus[key])
+            String text = f.text
+            List tokens = Extractor.tokenize(text)
+            classify()
+
+            Result result = new Result(fileName: corpus[key])
 
         }
 
@@ -122,9 +126,9 @@ class Main {
 
         println "Testing from remaining corpus"
 
-        def remainingKeys = shuffledKeys.drop(trainingSize)
+        def remainingKeys = shuffledKeys.drop(trainingSize.intValue())
 
-        testFromCorpus(corpus, remainingKeys)
+        //testFromCorpus(corpus, remainingKeys)
 
 
         println "Done!"

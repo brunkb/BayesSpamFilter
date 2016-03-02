@@ -1,8 +1,5 @@
 import spock.lang.Specification
 
-/**
- * Created by UC192330 on 2/26/2016.
- */
 class CalculatorsSpec extends Specification {
 
     def "test evaluateResult"() {
@@ -25,27 +22,4 @@ class CalculatorsSpec extends Specification {
         ResultType.FALSE_NEGATIVE |   Classification.HAM     |  Classification.SPAM
 
     }
-
-
-    def "test spamProbability"() {
-
-        when:
-        def result = Calculators.spamProbability(feature, totalHam, totalSpam)
-
-        then:
-          result == calculation
-
-        where:
-
-            calculation  |  feature                              | totalHam | totalSpam
-              2.0         |  [spamFrequency: 1, hamFrequency: 1]  | 1        | 1
-              2.0         |  [spamFrequency: 1, hamFrequency: 1]  | 0        | 0
-             11.0         |  [spamFrequency: 10, hamFrequency: 1] | 0        | 0
-             10.1         |  [spamFrequency: 1, hamFrequency: 10] | 0        | 0
-              1.1         |  [spamFrequency: 1, hamFrequency: 10] | 10       | 10
-              2.0         |  [spamFrequency: 1, hamFrequency: 10] | 10       | 1
-
-    }
-
-
 }
