@@ -4,10 +4,13 @@ import clojure.lang.Keyword
 
 class Statistics {
 
-    static def spamProbability = { Map feature, Long totalHam, Long totalSpam ->
+    static def spamProbability = { long hamFrequency,
+                                   long spamFrequency,
+                                   long totalHam,
+                                   long totalSpam ->
 
-        double s = (double) feature['spamFrequency'] / Math.max(1, totalHam)
-        double h = (double) feature['hamFrequency'] / Math.max(1, totalSpam)
+        double s = (double) spamFrequency / Math.max(1, totalHam)
+        double h = (double) hamFrequency / Math.max(1, totalSpam)
         s / (s + h)
     }
 
@@ -17,13 +20,14 @@ class Statistics {
      *  weight to be given to the prior (i.e. the number of data points to
      *  count it as).  Defaults to 1/2 and 1."
      */
-    static def bayesianSpamProbability = { Map feature,
+    static def bayesianSpamProbability = { long hamFrequency,
+                                           long spamFrequency,
                                            double assumedProbability = 0.5,
                                            double weight = 1.0,
                                            long totalHam,
                                            long totalSpam ->
-        def basicProb = Statistics.spamProbability(feature, totalHam, totalSpam)
-        def totalCount = feature['spamFrequency'] + feature['hamFrequency']
+        def basicProb = Statistics.spamProbability(hamFrequency, spamFrequency, totalHam, totalSpam)
+        def totalCount = hamFrequency + spamFrequency
         ((weight * assumedProbability) + (totalCount * basicProb)) / (weight + totalCount)
 
     }

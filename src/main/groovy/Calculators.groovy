@@ -31,14 +31,21 @@ class Calculators {
         } else if (result.calculatedType == Classification.SPAM &&
                 result.actualType == Classification.UNSURE) {
             ResultType.MISSED_SPAM
+        } else if(result.calculatedType == Classification.UNSURE &&
+                result.actualType == Classification.SPAM) {
+            ResultType.MISSED_SPAM
+        } else if(result.calculatedType == Classification.UNSURE &&
+                result.actualType == Classification.HAM) {
+            ResultType.MISSED_HAM
         }
+
     }
 
-   static def score = { def features, totalHam, totalSpam ->
+   static def score = { Map features, long totalHam, long totalSpam ->
 
         List spamProbs = []
-        features.each { Map feature ->
-            spamProbs << Statistics.bayesianSpamProbability(feature, 0.5, 1.0, totalHam, totalSpam)
+        features.each { key, val ->
+            spamProbs << Statistics.bayesianSpamProbability(val['hamFrequency'], val['spamFrequency'], 0.5, 1.0, totalHam, totalSpam)
         }
 
         List hamProbs = spamProbs.collect { 1 - it }
@@ -48,4 +55,24 @@ class Calculators {
 
         ((1 - h) + s) / 2
     }
+
+    static def analyzeResults = { List results ->
+
+        def finalStats = [Total: 0, (ResultType.CORRECT): 0,
+                          (ResultType.FALSE_POSITIVE): 0, (ResultType.FALSE_NEGATIVE): 0,
+                          (ResultType.MISSED_HAM): 0, (ResultType.MISSED_SPAM): 0]
+        results.each {  Result r ->
+                finalStats['Total'] += 1
+
+                ResultType rt = Calculators.evaluateResult(r)
+
+                if(rt == null) {
+                    println "Something went wrong with: ${r.toString()}"
+                } else {
+                    finalStats[rt] += 1
+                }
+        }
+        finalStats
+    }
+
 }

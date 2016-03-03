@@ -2,16 +2,19 @@ import groovy.io.FileType
 
 class Main {
 
+    static final String HAM_CORPUS = "src/main/resources/small_corpus/ham"
+    static final String SPAM_CORPUS = "src/main/resources/small_corpus/spam"
+
     final static def CV_FRACTION = 1 / 5
 
-    static Long totalHam = 0
-    static Long totalSpam = 0
+    static long totalHam = 0
+    static long totalSpam = 0
     static Map featureDb = [:] // a map of tokens to frequency of both spam and ham
 
     // Returns a map of the form [filename type]
     static Map populateCorpus() {
-        def spamDir = new File("src/main/resources/corpus/spam")
-        def hamDir = new File("src/main/resources/corpus/ham")
+        def spamDir = new File(SPAM_CORPUS)
+        def hamDir = new File(HAM_CORPUS)
 
         def corpus = [:]
         spamDir.eachFileRecurse(FileType.FILES) {
@@ -57,9 +60,9 @@ class Main {
             Main.updateFeatureDb(tokens)
 
             if (corpus[key] == Classification.SPAM) {
-                totalSpam += 1
+                Main.totalSpam += 1
             } else {
-                totalHam += 1
+                Main.totalHam += 1
             }
         }
         keys
@@ -67,40 +70,43 @@ class Main {
 
     // Tokenizes a message and then searches featureDb for those tokens in order
     // to build up a list of known tokens to compare with
-    def extractFeatures = {  String text ->
+    static def extractFeatures = {  String text ->
 
         List tokens = Extractor.tokenize(text)
-        def result = []
+        def result = [:]
         tokens.each { String tok ->
 
-            result << featureDb.find { it.key == tok }
+            def entry = featureDb.find { it.key == tok }
+            if(entry) {
+                result << entry
+            }
         }
         result
     }
 
-
-    Classification classify = { String text ->
-
-        def features = extractFeatures(text)
-        def score = Calculators.score(features)
-        Calculators.classifyScore(score)
-
-    }
-
     // Tests the remaining corpus not used in the training set
-    def testFromCorpus = { Map corpus, List remainingKeys ->
+    static def testFromCorpus = { Map corpus, List remainingKeys ->
 
-        remainingKeys.each {
-            def f = new File(corpus[key])
-            String text = f.text
-            List tokens = Extractor.tokenize(text)
-            classify()
+        List results = []
 
-            Result result = new Result(fileName: corpus[key])
+        remainingKeys.each { key ->
+            def f = new File(key)
+            Map features = Main.extractFeatures(f.text)
 
+            println "scoring for key: ${key}"
+            def score = Calculators.score(features, Main.totalHam, Main.totalSpam)
+
+
+            Classification classification = Calculators.classifyScore(score)
+
+            Result result = new Result(fileName: key,
+                                       actualType: corpus[key],
+                                       calculatedType: classification,
+                                       spamScore: score  )
+            results << result
         }
 
-
+        results
     }
 
     static void main(String[] args) {
@@ -117,18 +123,18 @@ class Main {
         // test from corpus
         println "Feature DB Size: ${featureDb.size()}"
 
-        featureDb.keySet().asList().eachWithIndex { entry, idx ->
-
-            if(idx > 50) { return }
-            println "${entry} -> ${featureDb[entry]}"
-
-        }
-
-        println "Testing from remaining corpus"
-
         def remainingKeys = shuffledKeys.drop(trainingSize.intValue())
+        println "Testing from remaining corpus keys remaining: ${remainingKeys.size()}"
 
-        //testFromCorpus(corpus, remainingKeys)
+        List results = Main.testFromCorpus(corpus, remainingKeys)
+
+        println "Analyzing results"
+
+        Map report = Calculators.analyzeResults(results)
+
+        report.each { key, val ->
+            println "${key}:  ${val}"
+        }
 
 
         println "Done!"
