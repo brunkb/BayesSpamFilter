@@ -2,6 +2,7 @@ import clojure.java.api.Clojure
 import clojure.lang.IFn
 import clojure.lang.Ratio
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Created by UC192330 on 3/2/2016.
@@ -26,6 +27,7 @@ class StatisticsSpec extends Specification {
         result4 == 0.9101508916323731
     }
 
+    @Unroll
     def "test spamProbability"() {
 
         when:

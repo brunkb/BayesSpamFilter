@@ -93,9 +93,9 @@ class Main {
             def f = new File(key)
             Map features = Main.extractFeatures(f.text)
 
-            println "scoring for key: ${key}"
+            println "scoring for file: ${key}"
             def score = Calculators.score(features, Main.totalHam, Main.totalSpam)
-
+            println "score: ${score}"
 
             Classification classification = Calculators.classifyScore(score)
 
@@ -132,8 +132,15 @@ class Main {
 
         Map report = Calculators.analyzeResults(results)
 
+        def total = 0
+
         report.each { key, val ->
-            println "${key}:  ${val}"
+
+            if(key == "Total") {
+                total = val
+            }
+
+            println "${key}:  ${val}   ${(val / total) * 100}%"
         }
 
 

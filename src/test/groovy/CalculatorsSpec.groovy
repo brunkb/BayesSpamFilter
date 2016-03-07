@@ -1,7 +1,10 @@
+import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class CalculatorsSpec extends Specification {
 
+    @Unroll
     def "test evaluateResult"() {
 
         when:
@@ -26,6 +29,7 @@ class CalculatorsSpec extends Specification {
     }
 
 
+    @Ignore
     def "test score function"() {
 
         when:
