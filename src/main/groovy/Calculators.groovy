@@ -14,32 +14,18 @@ class Calculators {
     }
 
     static def evaluateResult = { Result result ->
-        if (result.calculatedType == result.actualType) {
-            ResultType.CORRECT
-        } else if (result.calculatedType == Classification.HAM &&
-                result.actualType == Classification.SPAM) {
-            ResultType.FALSE_POSITIVE
-        } else if (result.calculatedType == Classification.HAM &&
-                result.actualType == Classification.SPAM) {
-            ResultType.MISSED_SPAM
-        } else if (result.calculatedType == Classification.SPAM &&
-                result.actualType == Classification.HAM) {
-            ResultType.FALSE_NEGATIVE
-        } else if (result.calculatedType == Classification.HAM &&
-                result.actualType == Classification.UNSURE) {
-            ResultType.MISSED_HAM
-        } else if (result.calculatedType == Classification.SPAM &&
-                result.actualType == Classification.UNSURE) {
-            ResultType.MISSED_SPAM
-        } else if(result.calculatedType == Classification.UNSURE &&
-                result.actualType == Classification.SPAM) {
-            ResultType.MISSED_SPAM
-        } else if(result.calculatedType == Classification.UNSURE &&
-                result.actualType == Classification.HAM) {
-            ResultType.MISSED_HAM
-        }
 
+                        // left is calculatedType, right is actualType
+        Map lookup = [([Classification.HAM, Classification.HAM]): ResultType.CORRECT,
+                      ([Classification.SPAM, Classification.SPAM]): ResultType.CORRECT,
+                      ([Classification.HAM, Classification.SPAM]): ResultType.FALSE_NEGATIVE,
+                      ([Classification.SPAM, Classification.HAM]): ResultType.FALSE_POSITIVE,
+                      ([Classification.UNSURE, Classification.SPAM]): ResultType.MISSED_SPAM,
+                      ([Classification.UNSURE, Classification.HAM]): ResultType.MISSED_HAM]
+
+        lookup[[result.calculatedType, result.actualType]]
     }
+
 
    static def score = { Map features, long totalHam, long totalSpam ->
 
