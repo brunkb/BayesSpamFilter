@@ -50,8 +50,8 @@ class Calculators {
 
         List hamProbs = spamProbs.collect { 1 - it }
 
-        def h = 1 - Statistics.fisher(spamProbs, features.size())
-        def s = 1 - Statistics.fisher(hamProbs, features.size())
+        def h = 1 - Statistics.parallelColtFisher(spamProbs, features.size())
+        def s = 1 - Statistics.parallelColtFisher(hamProbs, features.size())
 
         ((1 - h) + s) / 2
     }

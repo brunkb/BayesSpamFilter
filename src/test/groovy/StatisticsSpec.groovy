@@ -1,8 +1,7 @@
-import clojure.java.api.Clojure
-import clojure.lang.IFn
-import clojure.lang.Ratio
 import spock.lang.Specification
 import spock.lang.Unroll
+import java.math.MathContext
+import java.math.RoundingMode
 
 /**
  * Created by UC192330 on 3/2/2016.
@@ -33,18 +32,8 @@ class StatisticsSpec extends Specification {
         when:
         def result = Statistics.spamProbability(hamFrequency, spamFrequency, totalHam, totalSpam)
 
-        IFn require = Clojure.var("clojure.core", "require")
-        require.invoke(Clojure.read("spam.bayes"))
-
-        IFn cljSpamProb = Clojure.var("spam.bayes", "spam-probability-with-totals")
-        Ratio cljResult = cljSpamProb.invoke(spamFrequency, hamFrequency, totalHam, totalSpam)
-
-        cljResult.toString()
-        //println "${result}    ${cljResult}"
-
         then:
         result == calculation
-        cljResult.toString() == cljCalculation
 
         where:
         calculation          | cljCalculation | hamFrequency  | spamFrequency | totalHam | totalSpam
@@ -57,21 +46,23 @@ class StatisticsSpec extends Specification {
 
     }
 
-    // Demonstrates how to call a Clojure function from Groovy
-    def "test calling Clojure functions"() {
-
-        when:
-        IFn plus = Clojure.var("clojure.core", "+")
-        def result = plus.invoke(1, 2)
-        then:
-        result == 3
-    }
-
+    @Unroll
     def "test fisher computation"() {
 
         when:
-        def result = Statistics.fisher([0.1, 0.1, 0.2], 3)
+        def result = Statistics.parallelColtFisher(probabilities, degreesOfFreedom) as Double
+
+        BigDecimal bdResult = new BigDecimal(result, MathContext.DECIMAL64)
         then:
-        result == 0.053050570013819076
+        bdResult.round(new MathContext(4, RoundingMode.HALF_UP)) == expected.round(new MathContext(4, RoundingMode.HALF_UP))
+
+        where:
+
+            expected             |  probabilities       | degreesOfFreedom
+            0.053050570013819076 | [0.1, 0.1, 0.2]      | 3
+            0.35458235871706656  | [0.5, 0.2, 0.4, 0.9] | 3
+            0.729                | [0.9, 0.9, 0.9]      | 1
+            1.0                  | [1.0]                | 1
+            0.10000000000000009  | [0.1]                | 1
     }
 }

@@ -1,6 +1,4 @@
-import clojure.java.api.Clojure
-import clojure.lang.IFn
-import clojure.lang.Keyword
+import cern.jet.stat.tdouble.Probability
 
 class Statistics {
 
@@ -32,17 +30,7 @@ class Statistics {
 
     }
 
-    // Fisher computation described by Robinson, I am calling the Clojure incanter.stats
-    // library for now, but will work on substituting in a Java-based library
-    static def fisher = { List probs, Long num ->
-
-        IFn require = Clojure.var("clojure.core", "require")
-        require.invoke(Clojure.read("incanter.stats"))
-
-        IFn chiS = Clojure.var("incanter.stats", "cdf-chisq")
-
-        // second arg is degrees of freedom
-        1 - chiS.invoke(probs.collect { Math.log(it) }.sum() * -2, Keyword.find("df"), num * 2)
+    static def parallelColtFisher = { List probs, Long degreesOfFreedom ->
+        Probability.chiSquareComplemented(degreesOfFreedom * 2, probs.collect { Math.log(it) }.sum() * -2)
     }
-
 }
