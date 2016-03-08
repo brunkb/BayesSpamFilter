@@ -8,22 +8,23 @@ import java.math.RoundingMode
  */
 class StatisticsSpec extends Specification {
 
+    @Unroll
     def "test bayesian probability"() {
 
         when:
-        def result = Statistics.bayesianSpamProbability(1, 1, 0.5, 1.0, 100, 100)
-
-        def result2 = Statistics.bayesianSpamProbability(72, 2, 0.5, 1.0, 100, 100)
-
-        def result3 = Statistics.bayesianSpamProbability(200, 1, 0.5, 1.0, 200, 100)
-
-        def result4 = Statistics.bayesianSpamProbability(1, 25, 0.5, 1.0, 200, 100)
+        def result = Statistics.bayesianSpamProbability(hamFreq, spamFreq, assumedProb, weight, totalHam, totalSpam)
 
         then:
-        result == 0.5
-        result2 == 0.03333333333333333
-        result3 == 0.0049566677365990965
-        result4 == 0.9101508916323731
+
+        result == expected
+
+        where:
+            expected              | hamFreq | spamFreq | assumedProb | weight | totalHam | totalSpam
+            0.5                   | 1       | 1        | 0.5         | 1.0    | 100      | 100
+            0.03333333333333333   | 72      | 2        | 0.5         | 1.0    | 100      | 100
+            0.0049566677365990965 | 200     | 1        | 0.5         | 1.0    | 200      | 100
+            0.9101508916323731    | 1       | 25       | 0.5         | 1.0    | 200      | 100
+
     }
 
     @Unroll
